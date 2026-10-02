@@ -1,0 +1,25 @@
+# Secrets: never commit these
+.env
+.env.local
+.clio_token.json
+
+# Our local store (digests, share decisions, logs) and raw Clio dumps: read live, never committed
+.data/
+data/
+
+# Next.js / Node
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# OS / editors
+.DS_Store
+.vscode/
+.idea/
