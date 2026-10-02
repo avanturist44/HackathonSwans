@@ -21,7 +21,6 @@ export function page({ title, active, body, model = null, status = null }) {
     <a class="brand" href="/"><span class="brand-mark" aria-hidden="true"></span>CaseBrief</a>
     <nav class="tabs" aria-label="Views">
       ${tab('/', 'Attorney brief', 'brief')}
-      ${tab('/share', 'Share review', 'share')}
       ${tab('/share/preview', 'Provider view', 'provider')}
     </nav>
     <div class="top-right">

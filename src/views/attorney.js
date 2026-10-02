@@ -95,28 +95,20 @@ function header(m) {
 
 function testRow(m) {
   if (!m.test) return '';
-  const { fault, coverage, damages } = m.test;
-  const clear = [fault.status === 'clear', ['strong', 'documented'].includes(damages.status), coverage.status === 'confirmed'].filter(Boolean).length;
-  const card = (label, hint, block, group, extra = '') => {
+  const { fault, coverage } = m.test;
+  const clear = [fault.status === 'clear', coverage.status === 'confirmed'].filter(Boolean).length;
+  const card = (label, hint, block, group) => {
     const [text, t] = tone(group, block.status);
     return `<article class="card test">
       <div class="test-top"><span class="eyebrow">${label} <span class="muted">· ${hint}</span></span>${pill(text, t)}</div>
       <h3>${esc(block.headline || '')}</h3>
-      ${extra}
       <p class="muted">${esc(block.plain || '')}</p>
       ${chips(block.chips)}
     </article>`;
   };
-  const injury = (i) => `<li><div><strong>${esc(i.name)}</strong> ${i.status ? `<span class="tag">${esc(i.status)}</span>` : ''} ${chips(i.chips)}</div><p class="muted small">${esc(i.plain || '')}</p></li>`;
-  const first = m.injuries.slice(0, 3);
-  const rest = m.injuries.slice(3);
-  const injuries = m.injuries.length
-    ? `<div class="injuries">${bodyDiagram(m.injuries)}<div><ol class="injury-list">${first.map(injury).join('')}</ol>${rest.length ? `<details class="more"><summary>${plural(rest.length, 'more injury', 'more injuries')}: ${rest.map((i) => esc(i.name)).join(', ')}</summary><ol class="injury-list" start="${first.length + 1}">${rest.map(injury).join('')}</ol></details>` : ''}</div></div>`
-    : '';
-  return `<div class="section-head"><h2>Does the case hold up?</h2><span class="muted small">${clear} of 3 checks clear · someone at fault, real injuries, money to recover</span></div>
+  return `<div class="section-head"><h2>Does the case hold up?</h2><span class="muted small">${clear} of 2 checks clear · someone at fault, money to recover</span></div>
   <section class="grid test-grid">
     ${card('Fault', 'who caused it', fault, 'fault')}
-    ${card('Damages', 'the injuries', damages, 'damages', injuries)}
     ${card('Coverage', 'who pays', coverage, 'coverage')}
   </section>`;
 }
@@ -151,7 +143,7 @@ function glance(m) {
       <dl class="kvs">
         ${line('Case value', value)}
         ${$.cap != null ? line('Policy limit', usdShort($.cap)) : ''}
-        ${line('Medical bills', usdShort($.bills.total))}
+        ${m.providers.length ? `<div class="kv kv-click" role="button" tabindex="0" data-panel="providers" title="Treatment and bills, by provider"><dt>Medical bills <span class="muted small">· ${plural(m.providers.length, 'provider')} ›</span></dt><dd>${usdShort($.bills.total)}</dd></div>` : line('Medical bills', usdShort($.bills.total))}
         ${$.liens.length ? line('Liens', usdShort($.liensTotal)) : ''}
         ${line('Firm has spent', usdShort($.firm.total))}
         ${$.wage ? line('Wage loss', usdShort($.wage.amount)) : ''}
@@ -224,6 +216,7 @@ function lastVisitChip(p) {
   return v ? ` <button type="button" class="chip" data-source="${v.source}" data-page="${v.page}" title="Open the record of this visit">P.${v.page}</button>` : '';
 }
 
+/** The provider table and visit strip, rendered into a template and opened in the side panel from the Money card. */
 function providers(m) {
   if (!m.providers.length) return '';
   const order = { treating: 0, procedure_pending: 1, not_started: 2, unknown: 3, finished: 4 };
@@ -236,8 +229,8 @@ function providers(m) {
     if (p.share.expired) return `<a class="link small" href="/share?provider=${encodeURIComponent(p.key)}">Expired</a>`;
     return `<a class="link small" href="/share?provider=${encodeURIComponent(p.key)}">${p.share.opens ? `Opened ${p.share.opens}×` : 'Sent, not opened'}</a>`;
   };
-  return `<section class="card">
-    <div class="card-top"><h2>Treatment and bills <span class="muted">· ${treating} still treating</span></h2>
+  return `<template id="panel-providers" data-label="Treatment" data-title="Treatment and bills" data-sub="${plural(rows.length, 'provider')} · ${treating} still treating · ${usd(total)} billed">
+    <div class="card-top"><span class="muted small">One row per provider. Click a chip to open the source.</span>
       <select id="provider-sort" class="select" aria-label="Sort providers"><option value="status">Sort: treatment status</option><option value="billed">Sort: amount billed</option><option value="visit">Sort: last visit</option><option value="records">Sort: records outstanding</option></select></div>
     <div class="table-wrap"><table class="table" id="providers">
       <thead><tr><th>Provider</th><th>Status</th><th>Last visit</th><th>Records</th><th class="num">Billed</th><th>Paid by</th><th>Shared</th></tr></thead>
@@ -260,7 +253,7 @@ function providers(m) {
       <tfoot><tr><td colspan="4"><strong>Total · ${plural(rows.length, 'provider')}</strong></td><td class="num"><strong>${usd(total)}</strong></td><td colspan="2" class="muted small">${m.money.bills.stated != null ? `File states ${usd(m.money.bills.stated)}` : ''}</td></tr></tfoot>
     </table></div>
     ${visitStrip(m)}
-  </section>`;
+  </template>`;
 }
 
 /** One line per provider, one tick per visit found in the records. Gaps and undocumented stretches stand out. */
@@ -336,6 +329,7 @@ function entries(m) {
   </section>`;
 }
 
+/** The sync, cost and quote-check summary. Not shown on the page for now. */
 function footer(m) {
   const d = m.digest;
   const n = d.counts;
@@ -365,12 +359,10 @@ export function attorneyPage(m, status) {
   ${header(m)}
   ${glance(m)}
   <section class="grid two">${changes(m)}${attention(m)}</section>
-  ${fold('Does the case hold up?', 'fault, damages and coverage, with the reasoning', testRow(m))}
-  ${fold('Money in detail', 'where each figure comes from', moneyRow(m))}
+  ${fold('Does the case hold up?', 'fault and coverage, with the reasoning', testRow(m))}
   ${fold('Where the file disagrees with itself', plural(m.conflicts.length, 'conflict'), conflicts(m))}
-  ${fold('Treatment and bills', plural(m.providers.length, 'provider'), providers(m))}
   ${fold('Demands and offers', plural(m.money.offers.length, 'entry', 'entries'), offers(m))}
   ${fold(`The ${m.top.length} entries that matter`, `and the full timeline of ${m.timeline.length}`, entries(m), 'entries')}
-  ${footer(m)}`;
+  ${providers(m)}`;
   return page({ title: m.client?.name || 'Brief', active: 'brief', body, model: m, status });
 }

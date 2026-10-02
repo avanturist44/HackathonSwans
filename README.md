@@ -31,14 +31,13 @@ No Clio token yet? Create an app in Clio's developer portal, put its key and sec
 In the order the trial lawyers we interviewed said they look:
 
 1. **Header.** The client's photo (cropped from the photo ID in the intake folder), the filing deadline or the date suit was filed, when anyone last talked to the client, and how many tasks are overdue.
-2. **Does the case hold up?** Fault, damages and coverage, each with a status and a plain explanation. Injuries are placed on a body outline and explained in words a twelve-year-old would follow.
-3. **Money.** Case value, the recovery cap, medical bills, what the firm has spent, liens, wage loss.
+2. **Does the case hold up?** Fault and coverage, each with a status and a plain explanation. Injuries are placed on a body outline at the top of the page and explained in words a twelve-year-old would follow.
+3. **Money.** Case value, the recovery cap, medical bills, what the firm has spent, liens, wage loss. Click **Medical bills** and a panel opens with one row per provider: still treating or not, last visit, records status, amount billed, whether a link was shared and opened. Sortable. Below it, a timeline with one tick per visit found in the records, so gaps in treatment and stretches with no records stand out. Click a tick to open that visit's page.
 4. **Needs attention.** Overdue, coming up, and waiting on someone else.
 5. **Since you last opened.** What changed since this person's last visit.
 6. **Where the file disagrees with itself.** Contradictions between entries, plus arithmetic checks.
-7. **Treatment and bills.** One row per provider: still treating or not, last visit, records status, amount billed, whether a link was shared and opened. Sortable. Below it, a timeline with one tick per visit found in the records, so gaps in treatment and stretches with no records stand out. Click a tick to open that visit's page.
-8. **The pitch.** The case in sixty seconds.
-9. **The ten entries that matter**, with the full timeline one click behind.
+7. **The pitch.** The case in sixty seconds.
+8. **The ten entries that matter**, with the full timeline one click behind.
 
 Click any blue chip and a panel opens with the source: the note or email with the quoted passage highlighted, or the PDF at the cited page.
 

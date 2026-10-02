@@ -24,9 +24,11 @@
     if (!drawer) return;
     drawer.hidden = true;
     scrim.hidden = true;
+    drawer.classList.remove('drawer-wide');
     $('#drawer-body').innerHTML = '';
   };
-  const openDrawer = (label, title, sub, html) => {
+  const openDrawer = (label, title, sub, html, { wide = false } = {}) => {
+    drawer.classList.toggle('drawer-wide', wide);
     $('#drawer-label').textContent = label;
     $('#drawer-title').textContent = title;
     $('#drawer-sub').textContent = sub || '';
@@ -114,7 +116,17 @@
     openDrawer(label, 'The entries behind this number', total ? `Adds up to $${total.toLocaleString('en-US', { minimumFractionDigits: 2 })}. Added up by the app from Clio's own amounts.` : '', `<div class="facts">${rows.map((r) => `<button type="button" class="fact" data-source="${r.source}" data-fact="${r.id}"${r.page ? ` data-page="${r.page}"` : ''}><span class="chip chip-static">${esc(r.label)}</span> ${r.amount != null ? `<strong>$${Number(r.amount).toLocaleString('en-US', { minimumFractionDigits: 2 })}</strong> · ` : ''}${esc(r.detail)}</button>`).join('')}</div>`);
   }
 
+  /** A panel is a <template id="panel-…"> rendered with the page and shown in the drawer on demand, e.g. the provider table behind "Medical bills". */
+  const openPanel = (name) => {
+    const t = $(`#panel-${name}`);
+    if (!t) return;
+    const box = document.createElement('div');
+    box.appendChild(t.content.cloneNode(true));
+    openDrawer(t.dataset.label || '', t.dataset.title || '', t.dataset.sub || '', box.innerHTML, { wide: true });
+  };
   document.addEventListener('click', (ev) => {
+    const panel = ev.target.closest('[data-panel]');
+    if (panel) return void openPanel(panel.dataset.panel);
     const el = ev.target.closest('[data-source], [data-facts]');
     if (!el) return;
     if (el.closest('label.item')) ev.preventDefault(); // a chip inside a toggle row must not flip the toggle
@@ -123,7 +135,13 @@
   });
   $('#drawer-close')?.addEventListener('click', closeDrawer);
   scrim?.addEventListener('click', closeDrawer);
-  document.addEventListener('keydown', (ev) => ev.key === 'Escape' && closeDrawer());
+  document.addEventListener('keydown', (ev) => {
+    if (ev.key === 'Escape') return closeDrawer();
+    if ((ev.key === 'Enter' || ev.key === ' ') && ev.target.matches?.('[data-panel]')) {
+      ev.preventDefault();
+      openPanel(ev.target.dataset.panel);
+    }
+  });
 
   // ------------------------------------------------------------------ sync
   const progress = $('#progress');
@@ -186,7 +204,8 @@
     location.href = url.toString();
   });
 
-  $('#provider-sort')?.addEventListener('change', (ev) => {
+  document.addEventListener('change', (ev) => {
+    if (ev.target.id !== 'provider-sort') return; // the select lives in the drawer, so listen on the document
     const body = $('#providers tbody');
     const key = ev.target.value;
     const rows = $$('tr', body);
